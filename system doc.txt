@@ -1,0 +1,12 @@
+ideas for implementation:
+- desktop application to track various things inside of sb
+
+
+- bazaar tracker
+# records the current sell and buy prices of items
+# flow:
+    # call api
+    # api returns data 
+    # pick out wanted parts of the data/filter it
+    # store each entry in redis nosql db
+    
