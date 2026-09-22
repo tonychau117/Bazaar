@@ -2,9 +2,9 @@ import psycopg
 
 # Connect to the default 'postgres' database to execute the creation command
 conn = psycopg.connect(
-    dbname="postgres",
-    user="postgres",
-    password="your_password",
+    dbname="mydatabase",
+    user="myuser",
+    password="mysecretpassword",
     host="localhost",
     port="5432",
     autocommit=True,  # Critical: Must be set to True
