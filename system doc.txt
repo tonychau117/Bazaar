@@ -10,3 +10,6 @@ ideas for implementation:
     # pick out wanted parts of the data/filter it
     # store each entry in redis nosql db
     
+# table:
+    based on json result
+    

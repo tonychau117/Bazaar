@@ -10,6 +10,22 @@ conn = psycopg.connect(
     autocommit=True,  # Critical: Must be set to True
 )
 
+# creating a table based on our API pull
+
+create_bz_table = """
+
+CREATE TABLE IF NOT EXISTS (
+
+item_name VARCHAR(50) PRIMARY KEY NOT NULL,
+buy_price integer,
+sell_price integer,
+buy_volume integer, 
+sell_volume integer,
+buy_order integer,
+sell_order integer
+)
+"""
+
 try:
     with conn.cursor() as cursor:
         # Execute the database creation query
