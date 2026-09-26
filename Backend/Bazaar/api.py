@@ -1,11 +1,14 @@
 from fastapi import FastAPI # fastapi
-from Database import redis_client
+from Database import redis_client # call redis client so we can it
+from Database import postgres_client # call postgres client so that we can use it
 import requests # requests to pull from hypixel api
 
 app = FastAPI() # creating api
 url = "https://api.hypixel.net/v2/skyblock/bazaar"
 
 # getting items -> cache to redis and write to SQL backend db for storage
+# this is going to run on startup for initial prices on current time
+# only retrieves new prices when requested or we can run it async in the back in given intervals
 @app.get("/items") # url
 def loadData():
     # store the data as json
@@ -27,6 +30,7 @@ def loadData():
     redis_client.client.set(product_id, result[product_id]) # sets the data in cache
 
     # next we write the data in postgresql for historical data in order to make comparisons later on
+    # postgres_client.conn.execute
     
 
 # retrieves a specific item
