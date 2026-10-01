@@ -2,9 +2,11 @@ from fastapi import FastAPI # fastapi
 from Database import redis_client # call redis client so we can it
 from Database import postgres_client # call postgres client so that we can use it
 import requests # requests to pull from hypixel api
+from datetime import datetime # to get current time
 
 app = FastAPI() # creating api
 url = "https://api.hypixel.net/v2/skyblock/bazaar"
+now = datetime.now()
 
 # getting items -> cache to redis and write to SQL backend db for storage
 # this is going to run on startup for initial prices on current time
@@ -28,9 +30,18 @@ def loadData():
         }
 
     redis_client.client.set(product_id, result[product_id]) # sets the data in cache
+    # we dont care about historical data for this, just the now
 
     # next we write the data in postgresql for historical data in order to make comparisons later on
-    # postgres_client.conn.execute
+    '''
+        postgres_client.conn.execute("""
+            INSERT INTO bazaar_items ()
+        
+        
+        )
+    '''
+    
+    
     
 
 # retrieves a specific item
