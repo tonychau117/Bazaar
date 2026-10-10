@@ -29,27 +29,25 @@ PRIMARY KEY (item_name, valid_period WITHOUT OVERLAPS)
 )
 """
 
-def createDatabase():
-    # creating the database
-    try:
-        # cursor allows us to perform database operations
-        with conn.cursor() as cursor:
-            # Execute the database creation query
-            cursor.execute("CREATE DATABASE my_new_database;")
-            print("Database 'my_new_database' created successfully!")
-    except psycopg.errors.DuplicateDatabase:
-        print("Database already exists.")
-    finally:
-        conn.close()
+# def createDatabase():  # creating the database
+try:
+    # cursor allows us to perform database operations
+    with conn.cursor() as cursor:
+        # Execute the database creation query
+        cursor.execute("CREATE DATABASE my_new_database;")
+        print("Database 'my_new_database' created successfully!")
+except psycopg.errors.DuplicateDatabase:
+    print("Database already exists.")
+finally:
+    conn.close()
 
-def createTable():
-    # creating the table
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("CREATE TABLE create_bz_table")
-            print("Table created")
-            cursor.execute("CREATE EXTENSION IF NOT EXISTS btree_gist;")
-    except psycopg.errors.DuplicateTable:
-        print("Table already exists")
-    finally:
-        conn.close()
+#def createTable(): # creating the table
+try:
+    with conn.cursor() as cursor:
+        cursor.execute("CREATE TABLE create_bz_table")
+        print("Table created")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS btree_gist;")
+except psycopg.errors.DuplicateTable:
+    print("Table already exists")
+finally:
+    conn.close()
