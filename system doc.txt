@@ -3,3 +3,7 @@ current roadmap:
 - work on api being able to retrieve and properly store data (redis/postgres)
     - need historical input from postgres
     - same time -> record that into hd for storage/reference
+
+
+commands:
+python -m fastapi dev Bazaar/api.py

@@ -1,8 +1,8 @@
-from fastapi import FastAPI # fastapi
-from Database import redis_client # call redis client so we can it
-from Database import postgres_client # call postgres client so that we can use it
+from fastapi import FastAPI, HTTPException # fastapi
+from Database import redis_client, postgres_client # call redis client so we can it, call postgres client so that we can use it
 import requests # requests to pull from hypixel api
-from datetime import datetime # to get current time
+from datetime import datetime, timezone # to get current time
+import psycopg
 
 app = FastAPI() # creating api
 url = "https://api.hypixel.net/v2/skyblock/bazaar"
@@ -29,20 +29,85 @@ def loadData():
             "sell_orders": status["sellOrders"],
         }
 
-    redis_client.client.set(product_id, result[product_id]) # sets the data in cache
-    # we dont care about historical data for this, just the now
+    now = datetime.now(timezone.utc) # gets the current time in UTC tz
 
-    # next we write the data in postgresql for historical data in order to make comparisons later on
-    '''
-        postgres_client.conn.execute("""
-            INSERT INTO bazaar_items ()
-        
-        
+    # prepping postgresql data
+    records = [
+        (
+            product_id,
+            item["buy_price"],
+            item["sell_price"],
+            item["buy_volume"],
+            item["sell_volume"],
+            item["buy_orders"],
+            item["sell_orders"],
         )
-    '''
-    
-    
-    
+        for product_id, item in result.items()
+    ]
+
+    # postgres 
+    try:
+        with psycopg.connect(postgres_client.connection_string) as conn: # connecting to postgresql database
+            with conn.cursor() as cursor:
+                cursor.executemany(
+                    """
+                    UPDATE bazaar_items
+                    SET valid_period = tstzrange(
+                        lower(valid_period),
+                        %s,
+                        '[)'
+                    )
+                    WHERE item_name = %s
+                      AND upper_inf(valid_period)
+                      AND lower(valid_period) < %s
+                """,
+                    [(now, record[0], now) for record in records],
+                )
+
+                # Insert new active periods
+                cursor.executemany(
+                    """
+                    INSERT INTO bazaar_items (
+                        item_name,
+                        buy_price,
+                        sell_price,
+                        buy_volume,
+                        sell_volume,
+                        buy_orders,
+                        sell_orders,
+                        valid_period
+                    )
+                    VALUES (
+                        %s, %s, %s, %s,
+                        %s, %s, %s,
+                        tstzrange(%s, NULL, '[)')
+                    )
+                """,
+                    [(*record, now) for record in records],
+                )
+
+    except psycopg.Error as error:
+        raise HTTPException(status_code=500, detail=f"PostgreSQL error: {error}")
+
+# redis caching
+    try:
+            with redis_client.client.pipeline() as pipe:
+                for product_id, fields in result.items():
+                    pipe.hset(product_id, mapping=fields)
+                pipe.execute()
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Redis error: {error}"
+        )
+
+    return {
+        "message": "Bazaar data refreshed",
+        "items_processed": len(result),
+        "timestamp": now.isoformat()
+    }
+
 
 # retrieves a specific item
 @app.get("/items/{query}")
