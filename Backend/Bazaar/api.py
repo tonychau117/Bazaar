@@ -1,4 +1,6 @@
 from fastapi import Body, FastAPI, HTTPException # provides request body parsing, route registration, and HTTP errors
+from fastapi.middleware.cors import CORSMiddleware # allows the React frontend to call this API from another origin
+import os # reads optional deployment settings from environment variables
 from Database import redis_client, postgres_client # call redis client so we can it, call postgres client so that we can use it
 import requests # requests to pull from hypixel api
 from datetime import datetime, timezone # to get current time
@@ -6,6 +8,13 @@ import psycopg
 from redis.exceptions import RedisError # identifies errors raised by the Redis client
 
 app = FastAPI() # creating api
+frontend_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173") # reads allowed frontend origins, defaulting to local Vite
+app.add_middleware( # enables browser requests from the frontend's allowed origins
+    CORSMiddleware, # uses FastAPI's CORS middleware
+    allow_origins=[origin.strip() for origin in frontend_origins.split(",") if origin.strip()], # splits the configured origins and removes empty entries
+    allow_methods=["GET", "POST"], # permits the existing refresh and item lookup methods
+    allow_headers=["Content-Type"], # permits the plain-text POST lookup header
+) # finishes the browser access configuration
 url = "https://api.hypixel.net/v2/skyblock/bazaar"
 now = datetime.now()
 
